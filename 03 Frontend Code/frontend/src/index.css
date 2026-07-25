@@ -1,0 +1,29 @@
+:root{
+  --bg:#fff;
+  --muted:#6b7280;
+  --accent:#b5651d;
+  --accent-2:#d97706;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial; background:var(--bg); color:#111}
+a{color:inherit;text-decoration:none}
+.container{max-width:1100px;margin:0 auto;padding:1rem}
+nav.nav{background:#111;color:#fff}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem}
+.nav-links a{margin-left:1rem;color:#fff}
+.nav-links .btn{margin-left:1rem;background:transparent;border:1px solid rgba(255,255,255,0.12);padding:6px 8px}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:2rem 0}
+.hero .cta{background:linear-gradient(90deg,#fff0,#fff);padding:1rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.card{border:1px solid #e5e7eb;padding:1rem;border-radius:8px;background:#fff}
+.card img{display:block}
+.grid{display:grid;gap:1rem}
+form .row{display:flex;gap:0.5rem}
+input,textarea,select{width:100%;padding:0.5rem;border:1px solid #d1d5db;border-radius:6px}
+input:focus,textarea:focus{outline:3px solid rgba(181,101,29,0.15)}
+button.btn{background:var(--accent);color:white;padding:0.6rem 1rem;border:none;border-radius:6px;cursor:pointer}
+footer.footer{background:#0b1220;color:#fff;padding:1rem}
+@media(max-width:800px){.hero{grid-template-columns:1fr}}
+
+/* Accessibility helpers */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

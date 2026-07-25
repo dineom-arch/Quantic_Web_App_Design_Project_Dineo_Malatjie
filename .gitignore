@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+.venv/
+venv/
+.Python
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+
+# Flask
+instance/
+*.env
+.env
+
+# pytest
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
