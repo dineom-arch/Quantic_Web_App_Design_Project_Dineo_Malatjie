@@ -27,7 +27,7 @@ export default function OrderConfirmation() {
         </dl>
         <div className="confirmation-actions">
           <Link className="btn" to="/">Return home</Link>
-          <Link className="btn btn-outline" to="/menu">Browse menu</Link>
+          <Link className="btn btn-outline" to="/menu">Continue shopping</Link>
         </div>
       </section>
     </main>

@@ -5,7 +5,10 @@ import React, {
   useState,
 } from "react";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import api from "../api";
 import Card from "../components/Card";
@@ -14,17 +17,36 @@ import { readCart, writeCart } from "../utils/cart";
 
 export default function Order() {
   const [menu, setMenu] = useState([]);
+
   const [cart, setCart] = useState(() =>
-    readCart().map(({ menu_item_id, quantity }) => ({ menu_item_id, quantity }))
+    readCart().map(({ menu_item_id, quantity }) => ({
+      menu_item_id,
+      quantity,
+    }))
   );
+
   const [cartOpen, setCartOpen] = useState(false);
+  const [cartPulse, setCartPulse] = useState(false);
+  const [fulfilmentMode, setFulfilmentMode] =
+    useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const selectedItemId = Number(searchParams.get("item"));
+
+  const selectedItemId = Number(
+    searchParams.get("item")
+  );
+
   const cartContainerRef = useRef(null);
+
+  /*
+   * ============================================================
+   * Load menu data
+   * ============================================================
+   */
 
   useEffect(() => {
     api
@@ -45,26 +67,47 @@ export default function Order() {
       });
   }, []);
 
+  /*
+   * ============================================================
+   * Highlight a menu item selected from another page
+   * ============================================================
+   */
+
   useEffect(() => {
     if (!loading && selectedItemId) {
-      document.getElementById(`menu-item-${selectedItemId}`)?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+      document
+        .getElementById(
+          `menu-item-${selectedItemId}`
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
     }
   }, [loading, selectedItemId]);
+
+  /*
+   * ============================================================
+   * Close the cart when the customer clicks outside it
+   * ============================================================
+   */
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
         cartContainerRef.current &&
-        !cartContainerRef.current.contains(event.target)
+        !cartContainerRef.current.contains(
+          event.target
+        )
       ) {
         setCartOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
 
     return () => {
       document.removeEventListener(
@@ -74,10 +117,17 @@ export default function Order() {
     };
   }, []);
 
+  /*
+   * ============================================================
+   * Cart actions
+   * ============================================================
+   */
+
   const addToCart = (item) => {
     setCart((currentCart) => {
       const existingItem = currentCart.find(
-        (cartItem) => cartItem.menu_item_id === item.id
+        (cartItem) =>
+          cartItem.menu_item_id === item.id
       );
 
       if (existingItem) {
@@ -85,7 +135,8 @@ export default function Order() {
           cartItem.menu_item_id === item.id
             ? {
                 ...cartItem,
-                quantity: cartItem.quantity + 1,
+                quantity:
+                  cartItem.quantity + 1,
               }
             : cartItem
         );
@@ -99,6 +150,12 @@ export default function Order() {
         },
       ];
     });
+
+    /*
+     * Open the cart immediately so that the customer
+     * can see that the item was successfully added.
+     */
+    setCartOpen(true);
   };
 
   const increaseQuantity = (itemId) => {
@@ -107,7 +164,8 @@ export default function Order() {
         cartItem.menu_item_id === itemId
           ? {
               ...cartItem,
-              quantity: cartItem.quantity + 1,
+              quantity:
+                cartItem.quantity + 1,
             }
           : cartItem
       )
@@ -121,27 +179,40 @@ export default function Order() {
           cartItem.menu_item_id === itemId
             ? {
                 ...cartItem,
-                quantity: cartItem.quantity - 1,
+                quantity:
+                  cartItem.quantity - 1,
               }
             : cartItem
         )
-        .filter((cartItem) => cartItem.quantity > 0)
+        .filter(
+          (cartItem) =>
+            cartItem.quantity > 0
+        )
     );
   };
 
   const removeFromCart = (itemId) => {
     setCart((currentCart) =>
       currentCart.filter(
-        (cartItem) => cartItem.menu_item_id !== itemId
+        (cartItem) =>
+          cartItem.menu_item_id !== itemId
       )
     );
   };
+
+  /*
+   * ============================================================
+   * Create the detailed cart information
+   * ============================================================
+   */
 
   const cartItems = useMemo(() => {
     return cart
       .map((cartItem) => {
         const menuItem = menu.find(
-          (item) => item.id === cartItem.menu_item_id
+          (item) =>
+            item.id ===
+            cartItem.menu_item_id
         );
 
         if (!menuItem) {
@@ -151,9 +222,11 @@ export default function Order() {
         return {
           ...cartItem,
           name: menuItem.name,
-          price_cents: menuItem.price_cents,
+          price_cents:
+            menuItem.price_cents,
           line_total_cents:
-            menuItem.price_cents * cartItem.quantity,
+            menuItem.price_cents *
+            cartItem.quantity,
         };
       })
       .filter(Boolean);
@@ -161,21 +234,80 @@ export default function Order() {
 
   const totalQuantity = useMemo(() => {
     return cart.reduce(
-      (total, item) => total + item.quantity,
+      (total, item) =>
+        total + item.quantity,
       0
     );
   }, [cart]);
 
+  /*
+   * Briefly animate the cart whenever its quantity changes.
+   */
+
+  useEffect(() => {
+    if (totalQuantity === 0) {
+      return undefined;
+    }
+
+    setCartPulse(true);
+
+    const pulseTimer =
+      window.setTimeout(() => {
+        setCartPulse(false);
+      }, 650);
+
+    return () => {
+      window.clearTimeout(pulseTimer);
+    };
+  }, [totalQuantity]);
+
   const cartTotalCents = useMemo(() => {
     return cartItems.reduce(
-      (total, item) => total + item.line_total_cents,
+      (total, item) =>
+        total +
+        item.line_total_cents,
       0
     );
   }, [cartItems]);
 
   const toggleCart = () => {
-    setCartOpen((currentValue) => !currentValue);
+    setCartOpen(
+      (currentValue) => !currentValue
+    );
   };
+
+  /*
+   * ============================================================
+   * Click & Collect navigation
+   * ============================================================
+   */
+
+  const browseCollectionMenu = (event) => {
+    event.preventDefault();
+
+    setFulfilmentMode("collection");
+
+    /*
+     * Show the selected card transition briefly before
+     * scrolling the customer to the available menu.
+     */
+    window.setTimeout(() => {
+      document
+        .getElementById(
+          "available-items-heading"
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 300);
+  };
+
+  /*
+   * ============================================================
+   * Checkout navigation
+   * ============================================================
+   */
 
   const proceedToCheckout = () => {
     if (cart.length === 0) {
@@ -196,7 +328,7 @@ export default function Order() {
     <main className="online-order-page">
       <div className="container">
         {/* =====================================================
-            Page heading and compact cart button
+            Page heading and fixed cart
         ===================================================== */}
 
         <div className="online-order-topbar">
@@ -208,20 +340,27 @@ export default function Order() {
             <h1>Order Online</h1>
 
             <p>
-              Select your favourites and review your order before
-              proceeding to checkout.
+              Select your favourites and review
+              your order before proceeding to
+              checkout.
             </p>
           </div>
 
           <div
-            className="compact-cart-container"
+            className={`compact-cart-container ${
+              cartPulse
+                ? "cart-updated"
+                : ""
+            }`}
             ref={cartContainerRef}
           >
             <button
               type="button"
               className="compact-cart-button"
               aria-label={`Open cart containing ${totalQuantity} ${
-                totalQuantity === 1 ? "item" : "items"
+                totalQuantity === 1
+                  ? "item"
+                  : "items"
               }`}
               aria-expanded={cartOpen}
               onClick={toggleCart}
@@ -264,9 +403,9 @@ export default function Order() {
               </span>
             </button>
 
-            {/* =================================================
+            {/* ===============================================
                 Expandable cart summary
-            ================================================= */}
+            =============================================== */}
 
             {cartOpen && (
               <aside
@@ -288,7 +427,9 @@ export default function Order() {
                     type="button"
                     className="cart-close-button"
                     aria-label="Close cart"
-                    onClick={() => setCartOpen(false)}
+                    onClick={() =>
+                      setCartOpen(false)
+                    }
                   >
                     ×
                   </button>
@@ -325,89 +466,103 @@ export default function Order() {
                       />
                     </svg>
 
-                    <h3>Your cart is empty</h3>
+                    <h3>
+                      Your cart is empty
+                    </h3>
 
                     <p>
-                      Add an item from the menu to begin your
-                      order.
+                      Add an item from the menu
+                      to begin your order.
                     </p>
                   </div>
                 ) : (
                   <>
                     <div className="cart-popover-items">
-                      {cartItems.map((item) => (
-                        <article
-                          className="cart-popover-item"
-                          key={item.menu_item_id}
-                        >
-                          <div className="cart-item-information">
-                            <h3>{item.name}</h3>
+                      {cartItems.map(
+                        (item) => (
+                          <article
+                            className="cart-popover-item"
+                            key={
+                              item.menu_item_id
+                            }
+                          >
+                            <div className="cart-item-information">
+                              <h3>
+                                {item.name}
+                              </h3>
 
-                            <span className="cart-item-unit-price">
-                              {formatRandFromCents(
-                                item.price_cents
-                              )}{" "}
-                              each
-                            </span>
+                              <span className="cart-item-unit-price">
+                                {formatRandFromCents(
+                                  item.price_cents
+                                )}{" "}
+                                each
+                              </span>
 
-                            <div
-                              className="cart-quantity-control"
-                              aria-label={`Quantity for ${item.name}`}
-                            >
+                              <div
+                                className="cart-quantity-control"
+                                aria-label={`Quantity for ${item.name}`}
+                              >
+                                <button
+                                  type="button"
+                                  aria-label={`Decrease ${item.name} quantity`}
+                                  onClick={() =>
+                                    decreaseQuantity(
+                                      item.menu_item_id
+                                    )
+                                  }
+                                >
+                                  −
+                                </button>
+
+                                <span>
+                                  {
+                                    item.quantity
+                                  }
+                                </span>
+
+                                <button
+                                  type="button"
+                                  aria-label={`Increase ${item.name} quantity`}
+                                  onClick={() =>
+                                    increaseQuantity(
+                                      item.menu_item_id
+                                    )
+                                  }
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="cart-item-summary">
+                              <strong>
+                                {formatRandFromCents(
+                                  item.line_total_cents
+                                )}
+                              </strong>
+
                               <button
                                 type="button"
-                                aria-label={`Decrease ${item.name} quantity`}
+                                className="cart-remove-button"
                                 onClick={() =>
-                                  decreaseQuantity(
+                                  removeFromCart(
                                     item.menu_item_id
                                   )
                                 }
                               >
-                                −
-                              </button>
-
-                              <span>{item.quantity}</span>
-
-                              <button
-                                type="button"
-                                aria-label={`Increase ${item.name} quantity`}
-                                onClick={() =>
-                                  increaseQuantity(
-                                    item.menu_item_id
-                                  )
-                                }
-                              >
-                                +
+                                Remove
                               </button>
                             </div>
-                          </div>
-
-                          <div className="cart-item-summary">
-                            <strong>
-                              {formatRandFromCents(
-                                item.line_total_cents
-                              )}
-                            </strong>
-
-                            <button
-                              type="button"
-                              className="cart-remove-button"
-                              onClick={() =>
-                                removeFromCart(
-                                  item.menu_item_id
-                                )
-                              }
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </article>
-                      ))}
+                          </article>
+                        )
+                      )}
                     </div>
 
                     <div className="cart-popover-totals">
                       <div className="cart-summary-row">
-                        <span>Subtotal</span>
+                        <span>
+                          Subtotal
+                        </span>
 
                         <span>
                           {formatRandFromCents(
@@ -417,12 +572,17 @@ export default function Order() {
                       </div>
 
                       <div className="cart-summary-row">
-                        <span>Collection</span>
+                        <span>
+                          Collection
+                        </span>
+
                         <span>Free</span>
                       </div>
 
                       <div className="cart-total-row">
-                        <span>Order Total</span>
+                        <span>
+                          Order Total
+                        </span>
 
                         <strong>
                           {formatRandFromCents(
@@ -435,7 +595,9 @@ export default function Order() {
                     <button
                       type="button"
                       className="btn cart-checkout-button"
-                      onClick={proceedToCheckout}
+                      onClick={
+                        proceedToCheckout
+                      }
                     >
                       Proceed to Checkout
                     </button>
@@ -446,26 +608,84 @@ export default function Order() {
           </div>
         </div>
 
-        <section className="fulfilment-options" aria-labelledby="fulfilment-heading">
+        {/* =====================================================
+            Collection and delivery options
+        ===================================================== */}
+
+        <section
+          className="fulfilment-options"
+          aria-labelledby="fulfilment-heading"
+        >
           <div className="fulfilment-copy">
-            <span className="section-label">CHOOSE HOW TO ORDER</span>
-            <h2 id="fulfilment-heading">Collection or delivery</h2>
+            <span className="section-label">
+              CHOOSE HOW TO ORDER
+            </span>
+
+            <h2 id="fulfilment-heading">
+              Collection or delivery
+            </h2>
           </div>
-          <article className="fulfilment-card active">
-            <span className="fulfilment-badge">ON THIS WEBSITE</span>
+
+          <article
+            className={`fulfilment-card ${
+              fulfilmentMode === "collection"
+                ? "is-selected"
+                : ""
+            }`}
+          >
+            <span className="fulfilment-badge">
+              ON THIS WEBSITE
+            </span>
+
             <h3>Click &amp; Collect</h3>
-            <p>Order from our menu, choose a collection time and pay when you collect.</p>
-            <a className="text-link" href="#available-items-heading">Browse collection menu →</a>
+
+            <p>
+              Order from our menu, choose a
+              collection time and pay when you
+              collect.
+            </p>
+
+            <a
+              className="text-link fulfilment-action"
+              href="#available-items-heading"
+              onClick={
+                browseCollectionMenu
+              }
+            >
+              Browse collection menu →
+            </a>
           </article>
-          <article className="fulfilment-card">
-            <span className="fulfilment-badge">DELIVERY PARTNER</span>
+
+          <article
+            className={`fulfilment-card ${
+              fulfilmentMode === "delivery"
+                ? "is-selected"
+                : ""
+            }`}
+          >
+            <span className="fulfilment-badge">
+              DELIVERY PARTNER
+            </span>
+
             <h3>Uber Eats delivery</h3>
-            <p>For delivery, continue securely to Café Fausse on Uber Eats.</p>
+
+            <p>
+              For delivery, continue securely to
+              Café Fausse on Uber Eats.
+            </p>
+
             <a
               className="btn btn-outline"
-              href={import.meta.env.VITE_UBER_EATS_URL || "https://www.ubereats.com/"}
+              href={
+                import.meta.env
+                  .VITE_UBER_EATS_URL ||
+                "https://www.ubereats.com/"
+              }
               target="_blank"
               rel="noreferrer"
+              onClick={() =>
+                setFulfilmentMode("delivery")
+              }
             >
               Continue to Uber Eats
             </a>
@@ -473,7 +693,7 @@ export default function Order() {
         </section>
 
         {/* =====================================================
-            Menu state messages
+            Menu loading and error messages
         ===================================================== */}
 
         {loading && (
@@ -492,7 +712,7 @@ export default function Order() {
         )}
 
         {/* =====================================================
-            Menu items
+            Available menu items
         ===================================================== */}
 
         {!loading && !error && (
@@ -509,30 +729,36 @@ export default function Order() {
                 <div
                   id={`menu-item-${item.id}`}
                   key={item.id}
-                  className={item.id === selectedItemId ? "featured-order-item" : ""}
+                  className={
+                    item.id === selectedItemId
+                      ? "featured-order-item"
+                      : ""
+                  }
                 >
                   <Card title={item.name}>
                     <div className="online-order-card-content">
-                    <p className="online-order-description">
-                      {item.description ||
-                        "Description coming soon."}
-                    </p>
+                      <p className="online-order-description">
+                        {item.description ||
+                          "Description coming soon."}
+                      </p>
 
-                    <div className="online-order-card-footer">
-                      <span className="online-order-price">
-                        {formatRandFromCents(
-                          item.price_cents
-                        )}
-                      </span>
+                      <div className="online-order-card-footer">
+                        <span className="online-order-price">
+                          {formatRandFromCents(
+                            item.price_cents
+                          )}
+                        </span>
 
-                      <button
-                        type="button"
-                        className="btn"
-                        onClick={() => addToCart(item)}
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          className="btn"
+                          onClick={() =>
+                            addToCart(item)
+                          }
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
                     </div>
                   </Card>
                 </div>

@@ -36,14 +36,14 @@ export default function About() {
           </div>
           <div className="chef-story-copy">
             <p>
-              Laurent began his career in Cape Town before refining his craft
-              in Paris, Copenhagen and San Sebastián. He rose through some of
+              Originally from the DRC, Laurent began his career in Cape Town before refining his craft
+              in Paris, Copenhagen and Geneva. He rose through some of
               Europe’s most exacting kitchens, becoming known for elegant,
               ingredient-led plates and a calm, collaborative style of
               leadership.
             </p>
             <p>
-              His career includes earning a Michelin star as head
+              Laurent received his first Michelin star when he was the head
               chef of Maison Élan in Paris, retaining it for four consecutive
               years, and receiving a Michelin Green Star for a low-waste
               kitchen programme built around seasonal producers.
