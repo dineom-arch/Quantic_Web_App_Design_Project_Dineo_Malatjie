@@ -24,10 +24,13 @@ describe('Order -> Checkout flow', () => {
     // fill checkout form
     const nameInput = screen.getByLabelText(/Name/i)
     fireEvent.change(nameInput, { target: { value: 'Test User' } })
+    fireEvent.change(screen.getByLabelText(/Mobile/i), { target: { value: '0820000000' } })
+    fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'test@example.com' } })
+    fireEvent.change(screen.getByLabelText(/Preferred collection time/i), { target: { value: '2026-12-01T12:30' } })
     const placeBtn = screen.getByText(/Place Order/i)
 
     // mock post
-    api.post = vi.fn().mockResolvedValue({})
+    api.post = vi.fn().mockResolvedValue({ data: { id: 1, customer_name: 'Test User', customer_phone: '0820000000', total_cents: 400 } })
     fireEvent.click(placeBtn)
     // expect API called
     expect(api.post).toHaveBeenCalledWith('/orders', expect.objectContaining({ customer_name: 'Test User' }))

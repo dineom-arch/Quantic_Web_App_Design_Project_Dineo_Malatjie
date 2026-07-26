@@ -23,6 +23,7 @@ class MenuItem(db.Model):
     price_cents = db.Column(db.Integer, nullable=False)
     category = db.Column(db.String(100), nullable=True)
     available = db.Column(db.Boolean, default=True)
+    featured = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -32,7 +33,11 @@ class OrderItem(db.Model):
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
+    unit_price_cents = db.Column(db.Integer, nullable=False)
     menu_item = db.relationship('MenuItem')
+    __table_args__ = (
+        db.UniqueConstraint('order_id', 'menu_item_id', name='uq_order_item_menu'),
+    )
 
 
 class Order(db.Model):
@@ -40,7 +45,13 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(128), nullable=False)
     customer_phone = db.Column(db.String(32), nullable=True)
+    customer_email = db.Column(db.String(128), nullable=False)
     status = db.Column(db.String(50), default='pending')
+    order_type = db.Column(db.String(20), nullable=False, default='collection')
+    payment_method = db.Column(db.String(30), nullable=False, default='pay_on_collection')
+    payment_status = db.Column(db.String(20), nullable=False, default='pending')
+    collection_time = db.Column(db.DateTime, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
     total_cents = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     items = db.relationship('OrderItem', backref='order', cascade='all, delete-orphan')

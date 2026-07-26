@@ -19,19 +19,37 @@ class MenuItemSchema(Schema):
     price_cents = fields.Int(required=True)
     category = fields.Str(required=False, allow_none=True)
     available = fields.Bool()
+    featured = fields.Bool()
     created_at = fields.DateTime(dump_only=True)
 
 
 class OrderItemSchema(Schema):
     menu_item_id = fields.Int(required=True)
     quantity = fields.Int(required=True, validate=validate.Range(min=1))
+    unit_price_cents = fields.Int(dump_only=True)
+    name = fields.Function(
+        serialize=lambda obj: obj.menu_item.name if obj.menu_item else None,
+        dump_only=True
+    )
 
 
 class OrderSchema(Schema):
     id = fields.Int(dump_only=True)
     customer_name = fields.Str(required=True)
     customer_phone = fields.Str(required=False, allow_none=True)
+    customer_email = fields.Email(required=True)
     status = fields.Str(dump_only=True)
+    order_type = fields.Str(
+        required=True,
+        validate=validate.OneOf(['collection'])
+    )
+    payment_method = fields.Str(
+        required=True,
+        validate=validate.OneOf(['pay_on_collection'])
+    )
+    payment_status = fields.Str(dump_only=True)
+    collection_time = fields.DateTime(required=True)
+    notes = fields.Str(required=False, allow_none=True)
     items = fields.List(fields.Nested(OrderItemSchema), required=True)
     total_cents = fields.Int(dump_only=True)
     created_at = fields.DateTime(dump_only=True)

@@ -22,17 +22,35 @@ def client():
 
 def test_menu_and_order_flow(client):
     # Create menu item
-    res = client.post('/api/menu', json={'name': 'Test Coffee', 'price_cents': 500})
+    res = client.post('/api/menu', json={
+        'name': 'Test Coffee',
+        'price_cents': 500,
+        'featured': True
+    })
     assert res.status_code == 201
     item = res.get_json()
     item_id = item['id']
 
     # Create order
-    order_payload = {'customer_name': 'Bob', 'items': [{'menu_item_id': item_id, 'quantity': 2}]}
+    featured = client.get('/api/menu?featured=true').get_json()
+    assert [menu_item['id'] for menu_item in featured] == [item_id]
+
+    order_payload = {
+        'customer_name': 'Bob',
+        'customer_phone': '0820000000',
+        'customer_email': 'bob@example.com',
+        'order_type': 'collection',
+        'payment_method': 'pay_on_collection',
+        'collection_time': '2026-12-01T12:30:00',
+        'items': [{'menu_item_id': item_id, 'quantity': 2}]
+    }
     res = client.post('/api/orders', json=order_payload)
     assert res.status_code == 201
     order = res.get_json()
     assert order['customer_name'] == 'Bob'
+    assert order['total_cents'] == 1000
+    assert order['order_type'] == 'collection'
+    assert order['items'][0]['unit_price_cents'] == 500
 
 
 def test_reservations_and_newsletter(client):

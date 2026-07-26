@@ -15,6 +15,7 @@ Author:
 """
 
 import click
+from pathlib import Path
 from flask_migrate import (
     init as mig_init,
     migrate as mig_migrate,
@@ -28,6 +29,7 @@ from app import create_app
 # Create the Flask application using the Application Factory pattern.
 # ---------------------------------------------------------------------
 app = create_app()
+MIGRATIONS_DIR = Path(__file__).resolve().parents[2] / "migrations"
 
 
 # ---------------------------------------------------------------------
@@ -50,7 +52,7 @@ def db_init() -> None:
 
     try:
         with app.app_context():
-            mig_init()
+            mig_init(directory=str(MIGRATIONS_DIR))
             click.echo("✓ Migrations directory initialised successfully.")
 
     except Exception as exc:
@@ -75,7 +77,7 @@ def db_migrate(message: str) -> None:
 
     try:
         with app.app_context():
-            mig_migrate(message=message)
+            mig_migrate(directory=str(MIGRATIONS_DIR), message=message)
             click.echo("✓ Migration created successfully.")
 
     except Exception as exc:
@@ -93,7 +95,7 @@ def db_upgrade() -> None:
 
     try:
         with app.app_context():
-            mig_upgrade()
+            mig_upgrade(directory=str(MIGRATIONS_DIR))
             click.echo("✓ Database upgraded successfully.")
 
     except Exception as exc:
@@ -118,7 +120,7 @@ def db_revision(message: str) -> None:
 
     try:
         with app.app_context():
-            mig_revision(message=message)
+            mig_revision(directory=str(MIGRATIONS_DIR), message=message)
             click.echo("✓ Revision created successfully.")
 
     except Exception as exc:

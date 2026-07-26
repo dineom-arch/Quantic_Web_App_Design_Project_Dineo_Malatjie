@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import api from '../api'
+import {formatRandFromCents} from '../utils/currency'
 
 export default function AdminDashboard(){
   const [orders,setOrders] = useState([])
@@ -25,7 +26,7 @@ export default function AdminDashboard(){
           <div className="card" key={o.id}>
             <div><strong>{o.customer_name}</strong></div>
             <div style={{color:'var(--muted)'}}>Status: {o.status}</div>
-            <div style={{color:'var(--muted)'}}>Total: ${(o.total_cents/100).toFixed(2)}</div>
+            <div style={{color:'var(--muted)'}}>Total: {formatRandFromCents(o.total_cents)}</div>
           </div>
         ))}
       </div>

@@ -18,7 +18,8 @@ def create_item():
         description=payload.get('description'),
         price_cents=payload['price_cents'],
         category=payload.get('category'),
-        available=payload.get('available', True)
+        available=payload.get('available', True),
+        featured=payload.get('featured', False)
     )
     db.session.add(item)
     db.session.commit()
@@ -27,7 +28,13 @@ def create_item():
 
 @menu_bp.route('', methods=['GET'])
 def list_items():
-    items = MenuItem.query.order_by(MenuItem.category.asc().nullsfirst(), MenuItem.name.asc()).all()
+    query = MenuItem.query.filter_by(available=True)
+    if request.args.get('featured', '').lower() in ('1', 'true', 'yes'):
+        query = query.filter_by(featured=True)
+    items = query.order_by(
+        MenuItem.category.asc().nullsfirst(),
+        MenuItem.name.asc()
+    ).all()
     return schema.dump(items, many=True), 200
 
 

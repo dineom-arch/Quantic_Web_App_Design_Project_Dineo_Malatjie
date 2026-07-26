@@ -1,5 +1,21 @@
 # Café Fausse Backend
 
+## Staff access
+
+The customer navigation intentionally does not expose the admin login. Staff
+can open `/admin/login` directly. Set `ADMIN_USERNAME` and a strong
+`ADMIN_PASSWORD` before running `python scripts/seed.py`; the public admin
+registration endpoint has been removed.
+
+## Updating an existing database
+
+From the backend directory, apply the supplied migration and reseed the menu:
+
+```powershell
+python manage.py db_upgrade
+python scripts/seed.py
+```
+
 This is the Flask backend for the Café Fausse Restaurant Platform.
 
 Quick start (Windows PowerShell):
