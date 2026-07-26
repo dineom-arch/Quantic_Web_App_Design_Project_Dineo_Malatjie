@@ -32,3 +32,6 @@ Thumbs.db
 # Ignore Office temporary files
 ~$*
 
+
+# Ignore presentation video files
+00 Presentation/*.mp4
